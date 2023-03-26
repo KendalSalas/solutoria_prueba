@@ -45,14 +45,14 @@ class IndicadorController extends Controller
      */
     public function lista_uf_between(Request $req)
     {
+    
+        $this->validate($req, [
+            'fecha_desde' => "required",
+            'fecha_hasta' => "required|gte:fecha_desde"
+        ]);
+
         $fecha_desde = $req->get('fecha_desde');
         $fecha_hasta = $req->get('fecha_hasta');
-
-        $actDay = date('Y-m-d');
-        $this->validate($req, [
-            'fecha_desde' => "required|lte:$actDay",
-            'fecha_hasta' => "required|gte:$fecha_desde|lte:$actDay"
-        ]);
 
         $indicadores = IndicadoresDet::selectRaw('valor_indicador AS valor, fecha_indicador AS fecha')
             ->where('codigo_indicador', '=', 'UF')
@@ -101,15 +101,13 @@ class IndicadorController extends Controller
      */
     public function insert_indicador(Request $req)
     {
-        $actDay = date('Y-m-d');
-
         $this->validate($req, [
             'nombre_crear' => "required",
             'codigo_crear' => "required",
             'valor_crear' => "required|gt:0",
             'origen_crear' => "required",
             'unidad_medida' => "required",
-            'fecha_crear' => "required|lte|$actDay"
+            'fecha_crear' => "required"
         ]);
 
         $nuevo_nombre = $req->get("nombre_crear");
