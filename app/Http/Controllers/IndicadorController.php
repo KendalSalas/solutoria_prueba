@@ -14,6 +14,10 @@ use Illuminate\Routing\Controller as BaseController;
 class IndicadorController extends Controller
 {
 
+    /**
+     * Funcion para obtener el promedio de UF agrupados por fecha, será lo primero que se cargue en /
+     * @return Array JSON de 2 elementos, data => true/false, detail =>[]
+     */
     public function lista_uf_index()
     {
         $indicadores = IndicadoresDet::selectRaw('AVG(valor_indicador) AS valor, CONCAT(MONTHNAME(fecha_indicador), " ", YEAR(fecha_indicador)) AS fecha')
@@ -35,10 +39,20 @@ class IndicadorController extends Controller
         }
     }
 
+    /**
+     * Funcion para obtener el valor de la UF agrupado por las fechas dadas por el usuario
+     * @return Array JSON de 2 elementos, data => true/false, detail =>[]
+     */
     public function lista_uf_between(Request $req)
     {
         $fecha_desde = $req->get('fecha_desde');
         $fecha_hasta = $req->get('fecha_hasta');
+
+        $actDay = date('Y-m-d');
+        $this->validate($req, [
+            'fecha_desde' => "required|lte:$actDay",
+            'fecha_hasta' => "required|gte:$fecha_desde|lte:$actDay"
+        ]);
 
         $indicadores = IndicadoresDet::selectRaw('valor_indicador AS valor, fecha_indicador AS fecha')
             ->where('codigo_indicador', '=', 'UF')
@@ -59,12 +73,16 @@ class IndicadorController extends Controller
         return response($jsonResponse, 200)->header('Content-Type', 'text/plain');
     }
 
+    /**
+     * Funcion para todos los indicadores de UF y listarlos en una tabla para modificar u eliminar
+     * @return Array JSON de 2 elementos, data => true/false, detail =>[]
+     */
     public function lista_uf_modificar()
     {
         $indicadores = IndicadoresDet::where('codigo_indicador', '=', 'UF')->orderBy('id', 'DESC')->get();
 
         $rowIndicadores = count($indicadores);
-        
+
         //Arreglo que contendrá 2 elementos, data que será true en caso de que hayan registros (caso contrario será un false), y detail, que serán los registros encontrados (si no hay registros, devolverá un array vacio)
         $jsonResponse = [];
 
@@ -77,8 +95,23 @@ class IndicadorController extends Controller
         }
     }
 
+    /**
+     * Funcion para crear un nuevo registro
+     * @return Array JSON de 2 elementos, data => true/false, ?detail Para cuando exista un error y mostrar un mensaje acorde a este
+     */
     public function insert_indicador(Request $req)
     {
+        $actDay = date('Y-m-d');
+
+        $this->validate($req, [
+            'nombre_crear' => "required",
+            'codigo_crear' => "required",
+            'valor_crear' => "required|gt:0",
+            'origen_crear' => "required",
+            'unidad_medida' => "required",
+            'fecha_crear' => "required|lte|$actDay"
+        ]);
+
         $nuevo_nombre = $req->get("nombre_crear");
         $nuevo_codigo = $req->get("codigo_crear");
         $nuevo_valor  = $req->get("valor_crear");
@@ -105,7 +138,7 @@ class IndicadorController extends Controller
             $errMsg = $e->getMessage();
             $errCode = $e->getCode();
 
-            if($errCode == 23000){
+            if ($errCode == 23000) {
                 $jsonResponse = json_encode(["data" => false, "detail" => "Ya existe un valor de UF para la fecha $nueva_fecha"]);
                 return response($jsonResponse, 200)->header('Content-Type', 'text/plain');
             } else {
@@ -118,8 +151,21 @@ class IndicadorController extends Controller
         return response($jsonResponse, 200)->header('Content-Type', 'text/plain');
     }
 
+    /**
+     * Funcion para actualizar un registro
+     * @return Array JSON de 2 elementos, data => true/false, ?detail Para cuando exista un error y mostrar un mensaje acorde a este
+     */
     public function update_indicador(Request $req)
     {
+
+        $this->validate($req, [
+            'id_modificar' => "required|gt:0",
+            'nombre_modificar' => "required",
+            'codigo_modificar' => "required",
+            'valor_modificar' => "required|gt:0",
+            'origen_modificar' => "required",
+        ]);
+
         $id = $req->get("id_modificar");
         $nuevo_nombre = $req->get("nombre_modificar");
         $nuevo_codigo = $req->get("codigo_modificar");
@@ -137,8 +183,16 @@ class IndicadorController extends Controller
         }
     }
 
+    /**
+     * Funcion para eliminar un registro
+     * @return Array JSON de 2 elementos, data => true/false, ?detail Para cuando exista un error y mostrar un mensaje acorde a este
+     */
     public function delete_indicador(Request $req)
     {
+        $this->validate($req, [
+            'id_eliminar' => "required|gt:0",
+        ]);
+
         $id_eliminar = $req->get('id_eliminar');
 
         try {
