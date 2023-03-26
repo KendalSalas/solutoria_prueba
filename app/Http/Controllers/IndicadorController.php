@@ -45,7 +45,7 @@ class IndicadorController extends Controller
      */
     public function lista_uf_between(Request $req)
     {
-    
+
         $this->validate($req, [
             'fecha_desde' => "required",
             'fecha_hasta' => "required|gte:fecha_desde"
@@ -101,23 +101,25 @@ class IndicadorController extends Controller
      */
     public function insert_indicador(Request $req)
     {
+
         $this->validate($req, [
             'nombre_crear' => "required",
             'codigo_crear' => "required",
-            'valor_crear' => "required|gt:0",
+            'valor_crear' => "required|gt:0|decimal:0,4",
             'origen_crear' => "required",
-            'unidad_medida' => "required",
-            'fecha_crear' => "required"
+            "unidad_crear" => "required",
+            "fecha_crear" => "required"
         ]);
 
-        $nuevo_nombre = $req->get("nombre_crear");
-        $nuevo_codigo = $req->get("codigo_crear");
-        $nuevo_valor  = $req->get("valor_crear");
-        $nuevo_origen = $req->get("origen_crear");
-        $nueva_fecha  = $req->get("fecha_crear");
-        $unidad_medida = $req->get("unidad_crear");
-
         try {
+
+            $nuevo_nombre = $req->get("nombre_crear");
+            $nuevo_codigo = $req->get("codigo_crear");
+            $nuevo_valor  = $req->get("valor_crear");
+            $nuevo_origen = $req->get("origen_crear");
+            $nueva_fecha  = $req->get("fecha_crear");
+            $unidad_medida = $req->get("unidad_crear");
+
             IndicadoresDet::insert(
                 [
                     "nombre_indicador" => "$nuevo_nombre",
@@ -140,13 +142,10 @@ class IndicadorController extends Controller
                 $jsonResponse = json_encode(["data" => false, "detail" => "Ya existe un valor de UF para la fecha $nueva_fecha"]);
                 return response($jsonResponse, 200)->header('Content-Type', 'text/plain');
             } else {
-                $jsonResponse = json_encode(["data" => false, "detail" => "Ocurrió un error al intentar crear el registro"]);
+                $jsonResponse = json_encode(["data" => false, "detail" => "Ocurrió un error al intentar crear el registro", "det_2" => $errMsg]);
                 return response($jsonResponse, 200)->header('Content-Type', 'text/plain');
             }
         }
-
-        $jsonResponse = json_encode(["data" => true, "det" => "Nombre: $nuevo_nombre / Codigo: $nuevo_codigo / Valor: $nuevo_valor / Fecha: $nueva_fecha"]);
-        return response($jsonResponse, 200)->header('Content-Type', 'text/plain');
     }
 
     /**
@@ -160,7 +159,7 @@ class IndicadorController extends Controller
             'id_modificar' => "required|gt:0",
             'nombre_modificar' => "required",
             'codigo_modificar' => "required",
-            'valor_modificar' => "required|gt:0",
+            'valor_modificar' => "required|gt:0|decimal:0,4",
             'origen_modificar' => "required",
         ]);
 

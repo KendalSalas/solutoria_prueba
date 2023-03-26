@@ -81,18 +81,43 @@ const validarModal = modalObj => {
             })
 
             return false
-        } else if(fecha > fechaActual){
+        } else if (fecha > fechaActual) {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
                 text: `La fecha a crear no puede ser superior a la fecha de hoy`
+            })
+
+            return false
+        }
+
+        return true
+
+    } else if (modalObj == 'modificar') {
+        const nombre = document.getElementById('nombre_modificar').value
+        const codigo = document.getElementById('codigo_modificar').value
+        const valor = document.getElementById('valor_modificar').value
+        const origen = document.getElementById('origen_modificar').value
+
+        if (nombre.trim() == '' || codigo.trim() == '' || valor.trim() == '' || origen.trim() == '') {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: `Debe llenar todos los campos para poder crear un registro`
+            })
+
+            return false
+        } else if(valor <= 0){
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: `El campo valor debe ser mayor a 0`
             })
             
             return false
         }
 
         return true
-
     }
 }
 
@@ -367,7 +392,11 @@ document.addEventListener('click', (e) => {
         const valor = document.getElementById('valor_modificar').value
         const origen = document.getElementById('origen_modificar').value
 
-        modificarRegistro(id, nombre, codigo, valor, origen)
+        modalValido = validarModal('modificar');
+
+        if(modalValido){
+            modificarRegistro(id, nombre, codigo, valor, origen)
+        }
     }
 
     if (e.target.matches('.btn-eliminar')) {
@@ -396,12 +425,12 @@ document.addEventListener('click', (e) => {
 
         modalValido = validarModal('crear');
 
-        if(modalValido){
+        if (modalValido) {
             insertarRegistro(nombre, codigo, valor, origen, fecha, unidad)
         }
     }
 
-    if(e.target.matches('#btn_cerrar_insert') || e.target.matches('#btn_cerrar_insert_upper')){
+    if (e.target.matches('#btn_cerrar_insert') || e.target.matches('#btn_cerrar_insert_upper')) {
         clearModal('crear')
     }
 })
